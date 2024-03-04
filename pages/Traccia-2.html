@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html style="font-size: 16px;" lang="it-IT">
+  <head>
+    <link rel="stylesheet" href="../css/relazione.css">
+    <meta charset="utf-8">
+    <title>Traccia 2</title>
+    <link rel="icon" href="../images/favicon.ico">
+
+  </head>
+  <body class="corpo">
+  <ul style="background-color: #478ac9">
+
+    <li><a href="Traccia-2.html">Traccia 2</a></li>
+    <li><a href="Traccia-1.html">Traccia 1</a></li>
+    <li><a href="../index.html">Intro</a></li>
+
+  </ul>
+      <div class="intro1">
+        <h1 style:"text-align: left ">2. Dischi</h1>
+        <p>Si vuole simulare la gestione automatizzata di un archivio di dischi musicali. Si&nbsp; suppone di avere un archivio di massimo 100 dischi identificati dal titolo, nome&nbsp;dell’autore o gruppo, da un codice identificativo e dal prezzo di prestito. Un disco
+può essere presente o in prestito. <br>Permettere all’utente di: <br>&nbsp;• Inserire un nuovo disco nell’archivio (automaticamente gli viene assegnato
+un codice). <br>&nbsp;• Visualizzare tutti i dischi di uno stesso autore o gruppo. <br>&nbsp;• Cercare nell’archivio il disco più costoso (usare un approccio divide-et impera
+ricorsivo) <br>Provvedere all’implementazione dell’algoritmo per la simulazione del negozio di
+dischi. <br><br>Effettuare almeno un test per ognuna delle opzioni richieste dall’utente.
+        </p>
+      </div>
+      <div class="intro1">
+
+        <details>
+        <summary><b>main.c</b></summary>
+        <small><pre style= "border-style: groove";>
+          <code>
+            #include "dischi.h"
+
+
+            int main () {
+            	//inizializzo un archivio di tipo dischi (struct) formato da 100 elementi
+            	dischi archivio[100];
+            	//variabile opzione per il funzionamento dello switch..case
+            	int opzione;
+            	//contatore per il riempimento della struct
+            	int count=0;
+            	//variabile intera usata falso booleano per l'uscita dal do..while
+            	int i=0;
+            	//int test[9]={10,24,3,30,5,9,1,8,10}; test rapido per la ricerca del massimo
+
+            	//menu di selezione operazione, ripete il ciclo fin quando non viene inserito il valore esci
+            	printf("\nBenvenuto nel negozio musicale\nChe operazione vuoi effettuare?");
+            	do{
+            		printf("\n\n1)Inserisci Disco\n2)Cerca Per Autore\n3)Cerca Piu' costoso\n4)Stampa Elenco Completo\n5)Esci");
+            		printf("\n\nScelta: ");
+            		scanf(" %d",&opzione);
+            		switch (opzione) {
+            	    	case 1:
+            	    		inserisci_disco(archivio,&count);
+            	      		break;
+
+            	   		 case 2:
+            	   			ricerca_autore(archivio,count);
+            	     	 	break;
+
+            			case 3:
+            				stampa_disco_costoso(archivio,count);
+            				break;
+            			case 4:
+            				stampa_elenco(archivio,count);
+            				printf("\n\n");
+            				break;
+            			case 5:
+            				printf("\nAlla prossima!");
+            				i=1;
+            				break;
+            		}
+            	}while(i!=1);
+            	return 0;
+            }
+          </code>
+        </pre></small>
+      </details>
+
+
+        <details>
+        <summary><b>dischi.h</b></summary>
+        <small><pre style= "border-style: groove";>
+          <code>
+            #ifndef dischi_h
+            #define dischi_h
+
+            #include &ltstdio.h>
+            #include &ltstring.h>
+            //definizione di una struct con le caratteristiche richieste
+            typedef struct {
+
+            	char titolo[50];
+            	char autore[50];
+            	char codice[11];
+            	int prezzo;
+            	int presente;
+
+            }dischi;
+
+            void inserisci_disco(dischi *,int *);
+            void genera_codice(int, dischi *);
+            void ricerca_autore (dischi [], int );
+            void stampa_elenco(dischi [], int );
+            int ricerca_prezzo(dischi [],int,int);
+
+            #endif
+          </code>
+        </pre></small>
+      </details>
+
+        <details>
+        <summary><b>dischi.c</b></summary>
+        <small><pre style= "border-style: groove";>
+          <code>
+            #include "dischi.h"
+
+            void genera_codice(int count,dischi *archivio) {
+
+            	//generazione di un codice identificativo unico
+            	char temp_code[20]="dsk00"; //formato da una radice comune a tutti
+            	int i;
+            	for(i=0;i&lt2;i++) {
+            		temp_code[5+i]=archivio[count].titolo[i];  //dalle prime due lettere del titolo
+            	}
+            	for (i=0;i&lt2;i++) {
+            		temp_code[7+i]=archivio[count].autore[i];  //dalle prime due lettere dell'autore
+            	}
+            	char temp[2];
+            	sprintf(temp, "%d", count);                    //trasforma l'indicatore posizione del disco, intero, in una stringa
+
+            	for (i=0;i&lt2;i++) {
+            		temp_code[9+i]=temp[i];                    //la inserisce nel codice
+            	}
+            	strcpy(archivio[count].codice,temp_code);      //copia il codice temporaneo nello spazio codice della struct
+
+            }
+
+            void inserisci_disco (dischi *archivio, int *count) {
+
+            	//inserisce un nuovo disco nella libreria e aumenta il contatore di posizione generale
+            	printf("\nInserimento nuovo disco...\nInserisci il titolo: ");
+            	scanf(" %[^\n]",&archivio[*count].titolo);
+            	printf("Inserisci il nome dell'autore: ");
+            	scanf(" %[^\n]",&archivio[*count].autore);
+            	printf("Inserisci il prezzo del disco: ");
+            	scanf(" %d",&archivio[*count].prezzo);
+            	archivio[*count].presente=1;
+            	genera_codice(*count,archivio); //chiamata di funzione che genera il codice in base ai dati appena inseriti
+            	*count=*count+1;
+            	printf("\nFatto!");
+
+            }
+
+            void stampa_elenco(dischi archivio[], int count) {
+            	//stampa l'elenco completo della libreria, mostra i file presenti e quelli non presenti
+            	printf("\nStampo elenco...");
+            	int i;
+            	for (i=0;i&ltcount;i++) {
+            		printf("\n%d Disco:\nTitolo: %s\nAutore: %s",i+1,archivio[i].titolo,archivio[i].autore);
+            		printf("\nCodice: %s\nPrezzo: %d euro",archivio[i].codice,archivio[i].prezzo);
+            		if (archivio[i].presente==1) printf("\nPresente");
+            		else printf("\nNon Presente");
+            	}
+
+
+            }
+
+            void ricerca_autore (dischi archivio[], int count) {
+            	int i;
+            	int trovato=0;
+            	char nome[50];
+            	if (count==0) printf("\nNon e' presente alcun disco nella libreria, impossibile effettuare la ricerca!");
+            	else{
+
+            		printf("\nInserire autore da ricercare: ");
+            		scanf(" %[^\n]",nome);
+
+            	 	for(i=0;i&ltcount;i++) {
+
+            			if(strcmp(nome, archivio[i].autore) == 0) {    //esegue il confronto tra le due stringhe
+                                                                 //se da come risultato 0 le due stringhe sono uguali
+            				trovato=1;
+            				printf("\n%d Disco:\nTitolo: %s\nAutore: %s",i+1,archivio[i].titolo,archivio[i].autore);
+            				printf("\nCodice: %s\nPrezzo: %d euro",archivio[i].codice,archivio[i].prezzo);
+            				if (archivio[i].presente==1) printf("\nPresente");
+            				else printf("\nNon Presente");
+            			}
+            		}
+            		if (trovato==0) printf("\nMi dispiace, nessun disco trovato..");
+            	}
+
+
+            }
+
+
+            int ricerca_prezzo(dischi archivio [],int primo,int ultimo) {
+            	//approccio divide et impera
+            	int max=0,max1=max;  //inizializzo il massimo, come primo elemento dell'array
+            	int mediano;
+            	if (ultimo&lt0)  {    //controllo che il vettore abbia almeno un elemento altrimenti ritorno un valore alert
+            			max=-1;
+            			return max;
+            	}
+
+            		if (primo == ultimo) {      //caso banale, array di dimensione 1
+            	    	max=primo;				//il max è l'unico elemento presente
+
+            		}
+            	    else if (primo==ultimo-1) { //array di dimensione 2,effettuo il confronto dei due valori
+
+            			if (archivio[primo].prezzo>archivio[ultimo].prezzo) {
+            				max=primo;
+            			}
+            			else {
+            				max=ultimo;
+            			}
+            	   }
+            	    else { 	 //nel caso in cui l'array sia formato da più di due valori, richiamo la function e continuo la divisione
+            	    	mediano = (primo + ultimo) / 2;     				//calcola il valore medio dell'array considerato
+            			max=ricerca_prezzo(archivio,primo, mediano);  		//effettua il divida et impera sulla prima metà dell'array
+            		   	max1=ricerca_prezzo(archivio,mediano+1, ultimo);	//effettua il divida et impera sula seconda metà dell'array
+            		    if(archivio[max].prezzo&ltarchivio[max1].prezzo)		//effettua il confronto tra i valori trovati
+            				max=max1;				//e seleziona l'indice di quello maggiore
+            			}
+            		return max;
+
+            }
+
+
+            void stampa_disco_costoso(dischi archivio[],int count) {
+
+            	int i=ricerca_prezzo(archivio,0,count-1);
+            	if (i==-1) printf("\nErrore! Non c'e' nessun disco!");  //se l'indice è -1 significa che non vi era alcun elemento!
+            	else {
+
+            		printf("\nIl disco piu' caro e': ");
+            		printf("\n%d Disco:\nTitolo: %s\nAutore: %s",i+1,archivio[i].titolo,archivio[i].autore);
+            		printf("\nCodice: %s\nPrezzo: %d euro",archivio[i].codice,archivio[i].prezzo);
+            		if (archivio[i].presente==1) printf("\nPresente");
+            		else printf("\nNon Presente");
+
+            	}
+
+            }
+
+
+          </code>
+        </pre></small>
+      </details>
+</div>
+
+              <div class="post-container">
+                  <h3 class="post-title">Inserimento Nuovo Disco</h3>
+                    <div class="post-thumb"><img src="../images/Inserimentonuovodisco.png" ></div>
+                    <div class="post-content">
+                      <p>Schermata iniziale di benvenuto. Il programma ci mostra il menu di selezione con le varie opzioni disponibili. <br>Il programma tornerà in questo
+                        menu dopo ogni operazione e vi resterà fino a quando non verra scelta l'opzione n°5, esci. In questo caso abbiamo scelto l'opzione n°1, per effettuare
+                        l'inserimento di un nuovo disco.<br> Il programma ci chiederà di inserire il titolo (spazi permessi), il nome dell'autore e il prezzo del disco. In base a queste
+                        informazioni il programma genererà un codice in automatico.&nbsp;</p>
+                    </div>
+            </div>
+  <div class="post-container">
+      <h3 class="post-title">Ricerca Per Autore</h3>
+        <div class="post-thumb"><img src="../images/ricercaperautore.png" ></div>
+        <div class="post-content">
+          <p>La scelta n°2 ci consente di visualizzare tutti i dischi di uno stesso autore. <br>Il programma ci chiederà di inserire il nome dell'autore da ricercare e
+            ci darà in output gli eventuali dischi trovati. <br>Ci sarà un alert nel caso in cui la libreria sia vuota o nel caso in cui la
+            ricerca non trovi alcun disco con quell'autore.&nbsp;</p>
+        </div>
+</div>
+<div class="post-container">
+    <h3 class="post-title">Ricerca Disco Più Costoso</h3>
+      <div class="post-thumb"><img src="../images/ricercapercosto.png" ></div>
+      <div class="post-content">
+        <p>L'opzione n°3 cerca nella libreria il disco più costoso e lo stampa a video. Per fare ciò usa l'approccia divida et impera per la selezione del massimo.
+           Anche in questo caso vi è un alert quando
+           la libreria è vuota.<br>L'opzione n°4 stampa semplicemente a video tutti i dischi presenti in libreria.</p>
+      </div>
+</div>
+  </body>
+</html>

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html style="font-size: 16px;" lang="it-IT">
+  <head>
+    <link rel="stylesheet" href="../css/relazione.css">
+    <meta charset="utf-8">
+    <title>Traccia 1</title>
+    <link rel="icon" href="../images/favicon.ico">
+
+  </head>
+<body class="corpo">
+  <ul style="background-color: #478ac9">
+
+    <li><a href="Traccia-2.html">Traccia 2</a></li>
+    <li><a href="Traccia-1.html">Traccia 1</a></li>
+    <li><a href="../index.html">Intro</a></li>
+
+  </ul>
+
+      <div class="intro1">
+         <h1>1. Risiko!</h1>
+        <p>Si vuole sviluppare un programma per la simulazione di una fase del gioco del
+Risiko.
+Supponiamo di avere 3 giocatori che partecipano al gioco. Il campo da gioco viene
+considerato come una mappa regolare di dimensioni 4 x 4. Ogni giocatore possiede
+una regione (cella) con un numero casuale di “cannoni” che può andare da (2 a 10).&nbsp;<br>Il gioco procede in questo modo: <br>&nbsp; &nbsp; &nbsp; &nbsp; • Il giocatore attacca (attaccante) la regione dell’avversario (difensore) che ha
+meno cannoni. <br>&nbsp; &nbsp; &nbsp; &nbsp; • I due giocatori lanciano 3 dadi a testa se l’attaccante ha più di 3 cannoni o in numero pari ai cannoni posseduti nel caso ne abbia minore di 3. <br>&nbsp; &nbsp; &nbsp; &nbsp; • Si considerano i dadi in modo da confrontare il valore massimo ottenuto
+dell’attaccante con quello del difensore, in seguito vengono considerati i valori massimi&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; residui su gli altri due dadi.
+&nbsp;L’attaccante vince se secondo la regola precedente il punteggio è
+maggiore di quello ottenuto dal difensore. Per ogni punteggio perso &nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;viene eliminato un cannone. In caso di parità vince il difensore. <br>&nbsp; &nbsp; &nbsp; &nbsp; • L’attacco continua finchè l’attaccante distrugge il difensore o viceversa
+(zero cannoni). <br>
+          <br>Effettuare almeno 5 test, variando le condizioni del gioco.
+        </p>
+      </div>
+      <div class="intro1">
+      <b>File Progetto:</b>
+        <details>
+        <summary>
+        <b>main.c</b></summary>
+          <small><pre style = "border-style: groove;">
+            <code>
+              #include "risiko.h"
+            /*Programma che simula la fase di attacco del gioco Risiko
+            Step:
+            Inseririmento nomi dei giocatori, gli verrà assegnato automaticamente un numero random di cannoni
+            Creazione mappa di gioco
+            Controllo del numero dei cannoni, per la ricerca del max e del min
+            Inizio della fase di attacco
+            Ogni round tramite la pressione del tasto invio verrà simulato il lancio dei dadi
+            per determinare il vincitore di ogni scontro
+            Lo scontro finsisce quando uno dei due giocatori termina i cannoni
+            */
+
+            int main ( ) {
+
+            	srand ( time(NULL) ); 		//genera il seme per la scelta casuale dei numeri (in questo caso in base all'orario del sistema)
+            	int size=3;
+            	//	printf("\nQuanti giocatori ci sono? ");
+            	//	scanf(" %d",&size);   	//nel caso in cui si volesse modificare il numero di giocatori
+            	giocatori id[size];      	//crea un array di struct giocatore
+            	int mappa [4][4]={0};	 	//inizializza una matrice 4x4 che formerò la nostra mappa,tutte le caselle vengono poste a zero
+            	int max=0,min=0;	  		//indici per determinare chi è il giocatore con più cannoni e chi quello con meno
+            	printf("\nBenvenuto in Risiko!");
+            	crea_giocatori (id,size);
+            	trova_max_min(id,&max,&min,size);
+            	crea_mappa(mappa,id,size);
+
+            	printf("\n%s con %d cannoni attacca %s che si difende con %d cannoni",id[max].nome,id[max].cannoni,id[min].nome,id[min].cannoni);
+            	//lo scontro termina quando uno dei due giocatori termina i cannoni
+            	while(id[max].cannoni>0 && id[min].cannoni>0) scontro(id,max,min,mappa);
+
+
+
+
+            	return 0;
+            }
+
+
+             </code>
+           </pre></small>
+      </details>
+
+      <details>
+        <summary>
+        <b>risiko.h</b></summary>
+        <small><pre style = "border-style: groove;">
+          <code>
+            #ifndef risiko_h
+            #define risiko_h
+
+            #include &ltstdio.h>
+            #include &ltstdlib.h>
+            #include &ltstring.h>
+            #include &lttime.h>
+
+            typedef struct{
+
+            	char nome[50];  //nome del giocatore
+            	int cannoni;	//numero di cannoni
+            	int x;			//posizione nella mappa
+            	int y;			//posizione nella mappa
+
+            }giocatori;
+
+            void crea_giocatori (giocatori *,int);
+            void stampa_mappa(int [4][4] ,giocatori *);
+            void crea_mappa( int [4][4] , giocatori *,int);
+            void trova_max_min(giocatori [3],int *,int *,int );
+            void aggiorna_mappa (int [4][4],giocatori *,int , int );
+            int  tira_dadi();
+            void scontro (giocatori *,int, int, int [4][4]);
+            #endif
+           </code>
+         </pre></small>
+
+      </details>
+
+      <details>
+        <summary>
+         <b>risiko.c</b> </summary>
+         <small><pre style = "border-style: groove;">
+           <code>
+             #include "risiko.h"
+             //funzione per la creazione dei giocatori
+             void crea_giocatori (giocatori *id,int size){
+             	printf("\nCreazione giocatori..\n");
+             	//Giocatori di default
+             	strcpy(id[0].nome,"Pippo");
+             	strcpy(id[1].nome,"Pluto");
+             	strcpy(id[2].nome,"Paperino");
+             	int i;
+             	for(i=0;i&ltsize;i++) {
+             		//se si usano i giocatori di default commentare le prossime due righe di codice
+             	//	printf("Inserisci nome giocatore %d: ",i+1);
+             	//	scanf(" %[^\n]",&id[i].nome);
+             		id[i].cannoni=rand() % (10 + 1 - 2) + 2;
+             	}
+             	printf("\nLista Giocatori: \n");
+             	for (i=0;i&ltsize;i++) {
+             		printf("\nNome: %s",id[i].nome);
+             		printf("\nCannoni: %d",id[i].cannoni);
+             	}
+             }
+             void stampa_mappa(int mappa [4][4],giocatori *id) {
+             	char x ='X';
+             	printf("\n\nMappa di gioco:\n");
+             	printf("\n|*********************|\n");
+             	int i,j;
+             	for (i=0;i&lt4;i++) {
+             		//printf("|                     |\n");
+             		for (j=0;j&lt4;j++) {
+             			if (mappa[i][j]==0) printf("| %c | ",x);
+             			else printf("| %d | ",mappa[i][j]);
+             		}//---------------------
+             		printf("\n|*********************|\n");
+             	}
+             }
+             //funzione che assegna una posizione ai giocatori in una mappa 4x4
+             void crea_mappa ( int mappa [4][4],giocatori *id,int size) {
+             	int i,j;
+             	int k;
+             	for (i=0;i&ltsize;i++) {
+             		//assegno una posizione random ad ogni giocatore, controllando che non sia già occupata
+             		id[i].x=rand() % (3 + 1 - 0) + 0;
+             		id[i].y=rand() % (3 + 1 - 0) + 0;
+                while(k&lti) {
+             		int k=0;
+             			//Controllo se i valori sono uguali
+             			if(id[i].x==id[k].x && id[i].y==id[k].y) {
+             				//Valori uguali, li riscrivo
+             				id[i].x=rand() % (3 + 1 - 0) + 0;
+             				id[i].y=rand() % (3 + 1 - 0) + 0;
+             			}
+             			else k++;
+             		}
+
+             		mappa[id[i].x][id[i].y]=id[i].cannoni;
+             	}
+
+             		stampa_mappa(mappa,id);
+
+             //funzione che aggiorna il numero di cannoni dei giocatori dopo ogni scontro
+             void aggiorna_mappa (int mappa [4][4],giocatori *id,int max, int min) {
+
+             	mappa[id[max].x] [id[max].y]=id[max].cannoni;
+             	mappa[id[min].x] [id[min].y]=id[min].cannoni;
+             	stampa_mappa(mappa,id);
+             	/*
+             	printf("\nMappa di gioco:\n");
+             	int i,j;
+             	for (i=0;i&lt4;i++) {
+             		for (j=0;j&lt4;j++) {
+             			printf("  %d",mappa[i][j]);
+             		}
+             		printf("\n");
+             	}*/
+             }
+
+             //funzione che trova il giocatore con più cannoni e quello con meno cannoni, determina chi attacca per primo
+             void trova_max_min(giocatori id[3], int *max,int *min,int size) {
+
+             	int i,t_max,t_min;
+
+             	t_max=id[0].cannoni;
+             	t_min=id[0].cannoni;
+
+             	for (i=0;i&ltsize;i++) {
+             		if(id[i].cannoni>t_max){
+             			t_max=id[i].cannoni;
+             			*max=i;
+             		}
+             		else if (id[i].cannoni&ltt_min){
+             			t_min=id[i].cannoni;
+             			*min=i;
+             		}
+             	}
+             }
+
+             //funzione che lancia e confronta i dadi
+             int tira_dadi () {
+
+             	int vincitore;
+             	int x=(rand() % 6) + 1;
+             	int y=(rand() % 6) + 1;
+
+             	printf("\nAtt: %d Dif: %d",x,y);
+             	if(x>y) return 1;
+             	else return 0;
+             }
+
+             //funzione che regola lo scontro,controlla il numero di cannoni rimanenti e chiama le funzioni tira_dadi e aggiorna_mappa
+             void scontro (giocatori *id,int max,int min,int mappa [4][4]) {
+             	fflush(stdin);
+             	printf("\nPremi invio per tirare i dadi...");
+             	getchar();
+             	int i,n,z;
+             		if(id[max].cannoni < 3 ) n=id[max].cannoni;
+             		else if(id[min].cannoni < 3) n=id[min].cannoni;
+             		else n=3;
+             		for(i=0;i&ltn;i++) {
+             			z=tira_dadi();
+             			if(z==1)  {
+             				id[min].cannoni--;
+             				printf("  il difensore perde un cannone!\n");
+             			}
+             			if (z==0) {
+             				id[max].cannoni--;
+             				printf("  l'attaccante perde un cannone!\n");
+             			}
+             		}
+            printf("\nAlla fine dello scontro %s ha %d cannoni e %s ha %d cannoni",id[max].nome,id[max].cannoni,id[min].nome,id[min].cannoni);
+            aggiorna_mappa(mappa,id,max,min);
+
+
+             }
+            </code>
+          </pre></small>
+      </details>
+
+      </div>
+
+    <div class="post-container">
+        <h3 class="post-title">Creazione Giocatori</h3>
+          <div class="post-thumb"><img src="../images/Creazionegiocatoir.png" ></div>
+          <div class="post-content">
+            <p>Il programma inizia con la creazione di 3 giocatori. L'utente inserisce i nomi e il programma assegna per ogni giocatore un numero casuale di cannoni. Il risultato viene stampato a video e mostra la lista completa con nome e numero di cannoni. Viene stampata anche una mappa di gioco, una casella viene assegnata casualmente ad ogni giocatore. Vi è un controllo affinche non si assegni una casella già occupata. Al termine di questa fase iniziale il programma determina il giocatore con più cannoni e quello che ne ha di meno.&nbsp;</p>
+          </div>
+</div>
+<div class="post-container">
+    <h3 class="post-title">Inizio Fase Di Attacco</h3>
+      <div class="post-thumb"><img src="../images/Tirodadi.png" ></div>
+      <div class="post-content">
+        <p>Dopo la fase di inizializzazione il programma procede con lo scontro. Il giocatore con più cannoni attaccherà quello che ne ha di meno. Lo scontro inizia quando si preme il tasto invio, simula quindi un lancio di dadi. Vengono stampati a video i valori del lancio ottenuti dall'attaccante e dal difensore, quello col numero minore perde un cannone quindi in questo caso per l'attaccante. Il numero di lanci quando si hanno più di 3 cannoni è di default 3, in questo caso il difensore ne ha solo 2 quindi vengono effettuati soli 2 lanci. Alla fine di ogni round viene stampata la mappa che riporta i valori aggiornati dei cannoni.&nbsp;</p>
+      </div>
+</div>
+
+<div class="post-container">
+    <h3 class="post-title">Fine Dello Scontro</h3>
+      <div class="post-thumb"><img src="../images/Tirodadi3.png"></div>
+      <div class="post-content">
+        <p>La fase di attacco continua e anche in questo round l'attaccante è sfortunato e perde altri due cannoni. Lo scontro termina quando uno dei due giocatori termina i cannoni.
+          In questo caso il difensore nell'ultimo scontro perde 2 cannoni e viene sconfitto. La sua casella viene resettata con una X.&nbsp;</p>
+      </div>
+</div>
+
+      <div>
+        <h1>Altre simulazioni&nbsp; &nbsp;(fasi intermedie saltate mostra inizio e fine scontro) :</h1>
+        <img src="../images/Simulazione1.png">
+        <img src="../images/SImulazione4.png">
+        <img src="../images/Simulazione5.png">
+        <img src="../images/SImulazione3.png">
+
+      </div>
+
+
+
+
+  </body>
+</html>
